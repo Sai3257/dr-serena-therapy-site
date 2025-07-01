@@ -5,10 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Phone, Mail, Clock } from 'lucide-react';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -22,14 +19,15 @@ export default function Contact() {
     reason: '',
     insurance: '',
     referral: '',
+    consent: false, // ✅ added
   });
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.name.trim()) newErrors.name = 'Name is required';
     if (!formData.dob.trim()) newErrors.dob = 'Date of birth is required';
     if (!formData.phone.trim()) newErrors.phone = 'Phone is required';
@@ -42,21 +40,27 @@ export default function Contact() {
     if (!formData.contactMethod) newErrors.contactMethod = 'Please select a contact method';
     if (!formData.bestTime.trim()) newErrors.bestTime = 'Best time to call is required';
     if (!formData.reason.trim()) newErrors.reason = 'This field is required';
-    
+    if (!formData.consent) newErrors.consent = 'You must agree before submitting'; // ✅ added
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData({ ...formData, [field]: value });
+    if (errors[field]) {
+      setErrors({ ...errors, [field]: '' });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    
+
     setIsSubmitting(true);
-    // Simulate form submission
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsSubmitting(false);
-    
-    // Reset form
+
     setFormData({
       name: '',
       dob: '',
@@ -68,16 +72,10 @@ export default function Contact() {
       reason: '',
       insurance: '',
       referral: '',
+      consent: false, // ✅ reset
     });
-    
-    alert('Thank you for your inquiry! I will contact you within two business days.');
-  };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData({ ...formData, [field]: value });
-    if (errors[field]) {
-      setErrors({ ...errors, [field]: '' });
-    }
+    alert('Thank you for your inquiry! I will contact you within two business days.');
   };
 
   return (
@@ -92,7 +90,7 @@ export default function Contact() {
             Please complete this form and I will contact you within two business days to schedule a 15-minute consultation.
           </p>
         </div>
-        
+
         <div className="max-w-2xl mx-auto animate-slide-in-left">
           <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader className="pb-6">
@@ -101,72 +99,98 @@ export default function Contact() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* All input fields */}
                 <div>
-                  <Label htmlFor="name" className="text-gray-700 font-semibold">Your name *</Label>
-                  <Input id="name" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} className={`mt-2 border-2 rounded-xl focus:border-blue-500 ${errors.name ? 'border-red-500' : 'border-gray-200'}`}/>
-                  {errors.name && <p className="text-red-500 text-sm mt-1 font-medium">{errors.name}</p>}
+                  <Label htmlFor="name">Your name *</Label>
+                  <Input id="name" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} />
+                  {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                 </div>
+
                 <div>
-                  <Label htmlFor="dob" className="text-gray-700 font-semibold">Date of birth *</Label>
-                  <Input id="dob" type="date" value={formData.dob} onChange={e => handleInputChange('dob', e.target.value)} className={`mt-2 border-2 rounded-xl focus:border-blue-500 ${errors.dob ? 'border-red-500' : 'border-gray-200'}`}/>
-                  {errors.dob && <p className="text-red-500 text-sm mt-1 font-medium">{errors.dob}</p>}
+                  <Label htmlFor="dob">Date of birth *</Label>
+                  <Input id="dob" type="date" value={formData.dob} onChange={e => handleInputChange('dob', e.target.value)} />
+                  {errors.dob && <p className="text-red-500 text-sm">{errors.dob}</p>}
                 </div>
+
                 <div>
-                  <Label htmlFor="phone" className="text-gray-700 font-semibold">Phone number *</Label>
-                  <Input id="phone" value={formData.phone} onChange={e => handleInputChange('phone', e.target.value)} className={`mt-2 border-2 rounded-xl focus:border-blue-500 ${errors.phone ? 'border-red-500' : 'border-gray-200'}`}/>
-                  {errors.phone && <p className="text-red-500 text-sm mt-1 font-medium">{errors.phone}</p>}
+                  <Label htmlFor="phone">Phone number *</Label>
+                  <Input id="phone" value={formData.phone} onChange={e => handleInputChange('phone', e.target.value)} />
+                  {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
                 </div>
+
                 <div>
-                  <Label className="text-gray-700 font-semibold">Is it okay if I leave a voicemail? *</Label>
-                  <div className="flex space-x-6 mt-2">
-                    <label className="flex items-center space-x-2">
-                      <input type="radio" name="voicemail" value="yes" checked={formData.voicemail === 'yes'} onChange={e => handleInputChange('voicemail', e.target.value)} className="accent-blue-600"/>
-                      <span>Yes</span>
+                  <Label>Is it okay if I leave a voicemail? *</Label>
+                  <div className="flex gap-6 mt-2">
+                    <label className="flex items-center gap-2">
+                      <input type="radio" name="voicemail" value="yes" checked={formData.voicemail === 'yes'} onChange={e => handleInputChange('voicemail', e.target.value)} />
+                      Yes
                     </label>
-                    <label className="flex items-center space-x-2">
-                      <input type="radio" name="voicemail" value="no" checked={formData.voicemail === 'no'} onChange={e => handleInputChange('voicemail', e.target.value)} className="accent-blue-600"/>
-                      <span>No</span>
-                    </label>
-                  </div>
-                  {errors.voicemail && <p className="text-red-500 text-sm mt-1 font-medium">{errors.voicemail}</p>}
-                </div>
-                <div>
-                  <Label htmlFor="email" className="text-gray-700 font-semibold">Email address *</Label>
-                  <Input id="email" type="email" value={formData.email} onChange={e => handleInputChange('email', e.target.value)} className={`mt-2 border-2 rounded-xl focus:border-blue-500 ${errors.email ? 'border-red-500' : 'border-gray-200'}`}/>
-                  {errors.email && <p className="text-red-500 text-sm mt-1 font-medium">{errors.email}</p>}
-                </div>
-                <div>
-                  <Label className="text-gray-700 font-semibold">Preferred contact method *</Label>
-                  <div className="flex space-x-6 mt-2">
-                    <label className="flex items-center space-x-2">
-                      <input type="radio" name="contactMethod" value="phone" checked={formData.contactMethod === 'phone'} onChange={e => handleInputChange('contactMethod', e.target.value)} className="accent-blue-600"/>
-                      <span>Phone</span>
-                    </label>
-                    <label className="flex items-center space-x-2">
-                      <input type="radio" name="contactMethod" value="email" checked={formData.contactMethod === 'email'} onChange={e => handleInputChange('contactMethod', e.target.value)} className="accent-blue-600"/>
-                      <span>Email</span>
+                    <label className="flex items-center gap-2">
+                      <input type="radio" name="voicemail" value="no" checked={formData.voicemail === 'no'} onChange={e => handleInputChange('voicemail', e.target.value)} />
+                      No
                     </label>
                   </div>
-                  {errors.contactMethod && <p className="text-red-500 text-sm mt-1 font-medium">{errors.contactMethod}</p>}
+                  {errors.voicemail && <p className="text-red-500 text-sm">{errors.voicemail}</p>}
                 </div>
+
                 <div>
-                  <Label htmlFor="bestTime" className="text-gray-700 font-semibold">When is a good time to call for a free 15-minute consultation? *</Label>
-                  <Input id="bestTime" value={formData.bestTime} onChange={e => handleInputChange('bestTime', e.target.value)} placeholder="e.g. Mon 10am, Wed 2pm (Eastern Time)" className={`mt-2 border-2 rounded-xl focus:border-blue-500 ${errors.bestTime ? 'border-red-500' : 'border-gray-200'}`}/>
-                  {errors.bestTime && <p className="text-red-500 text-sm mt-1 font-medium">{errors.bestTime}</p>}
+                  <Label htmlFor="email">Email address *</Label>
+                  <Input id="email" type="email" value={formData.email} onChange={e => handleInputChange('email', e.target.value)} />
+                  {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
                 </div>
+
                 <div>
-                  <Label htmlFor="reason" className="text-gray-700 font-semibold">What brings you to therapy? *</Label>
-                  <Textarea id="reason" rows={3} value={formData.reason} onChange={e => handleInputChange('reason', e.target.value)} className={`mt-2 border-2 rounded-xl focus:border-blue-500 resize-none ${errors.reason ? 'border-red-500' : 'border-gray-200'}`}/>
-                  {errors.reason && <p className="text-red-500 text-sm mt-1 font-medium">{errors.reason}</p>}
+                  <Label>Preferred contact method *</Label>
+                  <div className="flex gap-6 mt-2">
+                    <label className="flex items-center gap-2">
+                      <input type="radio" name="contactMethod" value="phone" checked={formData.contactMethod === 'phone'} onChange={e => handleInputChange('contactMethod', e.target.value)} />
+                      Phone
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input type="radio" name="contactMethod" value="email" checked={formData.contactMethod === 'email'} onChange={e => handleInputChange('contactMethod', e.target.value)} />
+                      Email
+                    </label>
+                  </div>
+                  {errors.contactMethod && <p className="text-red-500 text-sm">{errors.contactMethod}</p>}
                 </div>
+
                 <div>
-                  <Label htmlFor="insurance" className="text-gray-700 font-semibold">Insurance information</Label>
-                  <Input id="insurance" value={formData.insurance} onChange={e => handleInputChange('insurance', e.target.value)} className="mt-2 border-2 rounded-xl focus:border-blue-500 border-gray-200"/>
+                  <Label htmlFor="bestTime">Best time to call *</Label>
+                  <Input id="bestTime" value={formData.bestTime} onChange={e => handleInputChange('bestTime', e.target.value)} placeholder="e.g. Mon 10am, Wed 2pm" />
+                  {errors.bestTime && <p className="text-red-500 text-sm">{errors.bestTime}</p>}
                 </div>
+
                 <div>
-                  <Label htmlFor="referral" className="text-gray-700 font-semibold">Were you referred? If so, please indicate the referral source.</Label>
-                  <Input id="referral" value={formData.referral} onChange={e => handleInputChange('referral', e.target.value)} className="mt-2 border-2 rounded-xl focus:border-blue-500 border-gray-200"/>
+                  <Label htmlFor="reason">What brings you to therapy? *</Label>
+                  <Textarea id="reason" rows={3} value={formData.reason} onChange={e => handleInputChange('reason', e.target.value)} />
+                  {errors.reason && <p className="text-red-500 text-sm">{errors.reason}</p>}
                 </div>
+
+                <div>
+                  <Label htmlFor="insurance">Insurance Information</Label>
+                  <Input id="insurance" value={formData.insurance} onChange={e => handleInputChange('insurance', e.target.value)} />
+                </div>
+
+                <div>
+                  <Label htmlFor="referral">Referral Source</Label>
+                  <Input id="referral" value={formData.referral} onChange={e => handleInputChange('referral', e.target.value)} />
+                </div>
+
+                {/* ✅ Mandatory Checkbox */}
+                <div className="flex items-start space-x-3">
+                  <input
+                    type="checkbox"
+                    id="consent"
+                    checked={formData.consent}
+                    onChange={e => handleInputChange('consent', e.target.checked)}
+                    className="mt-1 accent-blue-600"
+                  />
+                  <Label htmlFor="consent" className="text-gray-700 font-medium">
+                    I consent to be contacted regarding my consultation.
+                  </Label>
+                </div>
+                {errors.consent && <p className="text-red-500 text-sm">{errors.consent}</p>}
+
                 <Button type="submit" disabled={isSubmitting} className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 text-lg font-semibold rounded-xl transition-all-300 hover:scale-105 shadow-glow">
                   {isSubmitting ? 'Submitting...' : 'Submit'}
                 </Button>
