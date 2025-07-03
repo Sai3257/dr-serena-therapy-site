@@ -2,7 +2,7 @@
 
 A modern, responsive website for Dr. Serena Blake, PsyD — offering personalized therapy services in Los Angeles & online.
 
-🔗 **Live Demo**: https://growmy-therapy.vercel.app
+🔗 **Live Demo**:https://growmy-therapy.vercel.app
 
 ## 💡 Project Overview
 
